@@ -1,0 +1,1 @@
+<div class="alert alert-warning"><?php echo e($message ? __($message) : ""); ?></div><?php /**PATH /home/prosnluk/public_html/resources/views/admin/components/alerts/warning.blade.php ENDPATH**/ ?>

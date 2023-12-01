@@ -1,0 +1,701 @@
+
+
+<?php $__env->startPush('css'); ?>
+
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection('page-title'); ?>
+    <?php echo $__env->make('admin.components.page-title',['title' => __($page_title)], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('breadcrumb'); ?>
+    <?php echo $__env->make('admin.components.breadcrumb',['breadcrumbs' => [
+        [
+            'name'  => __("Dashboard"),
+            'url'   => setRoute("admin.dashboard"),
+        ]
+    ], 'active' => __("Dashboard")], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('content'); ?>
+    <div class="dashboard-area">
+        <div class="dashboard-item-area">
+            <div class="row">
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+                    <?php
+                        $add_money_total    = $trx_add_money->count();
+
+                        $add_money_pending  = $trx_add_money->where('status',payment_gateway_const()::STATUSPENDING)->count();
+                        $add_money_success  = $trx_add_money->where('status',payment_gateway_const()::STATUSSUCCESS)->count();
+
+                        $add_money_success_with_pending_count = ($add_money_pending + $add_money_success);
+
+                        $one_percent_of_pending_success_add_money = (($add_money_success_with_pending_count / 100) == 0) ? 1 : ($add_money_success_with_pending_count / 100);
+
+                        $one_percent_of_total_add_money = (($add_money_total / 100) == 0) ? 1 : ($add_money_total / 100);
+
+                    ?>
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Total Add Money Request")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($add_money_total); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--success"><?php echo e(__("Success")); ?> <?php echo e($add_money_success); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("Pending")); ?> <?php echo e($add_money_pending); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart6" data-percent="<?php echo e(floor(($add_money_pending / $one_percent_of_pending_success_add_money))); ?>"><span><?php echo e(floor(($add_money_pending / $one_percent_of_pending_success_add_money))); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+                    <?php
+                        $trx_add_money_unit = numeric_unit_converter($trx_add_money->pluck("receive_amount")->sum());
+                    ?>
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Add Money Balance")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($default_currency->symbol); ?> <?php echo e($trx_add_money_unit->number . $trx_add_money_unit->unit); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--info"><?php echo e(__("Total")); ?> <?php echo e($trx_add_money_unit->number . $trx_add_money_unit->unit); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("Pending")); ?> <?php echo e(numeric_unit_converter($add_money_pending)->number . numeric_unit_converter($add_money_pending)->unit); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart7" data-percent="<?php echo e(floor($add_money_pending / $one_percent_of_total_add_money)); ?>"><span><?php echo e(floor($add_money_pending / $one_percent_of_total_add_money)); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+
+                    <?php
+                        $money_out_total    = $trx_money_out->count();
+
+                        $money_out_pending  = $trx_money_out->where('status',payment_gateway_const()::STATUSPENDING)->count();
+                        $money_out_success  = $trx_money_out->where('status',payment_gateway_const()::STATUSSUCCESS)->count();
+
+                        $money_out_success_with_pending_count = ($money_out_pending + $money_out_success);
+
+                        $one_percent_of_pending_success_money_out = (($money_out_success_with_pending_count / 100) == 0) ? 1 : ($money_out_success_with_pending_count / 100);
+                        $one_percent_of_total_money_out = (($money_out_total / 100) == 0) ? 1 : ($money_out_total / 100);
+
+                        $this_day_money_out_balance = $trx_money_out->filter(function($item) {
+
+                            if ($item->created_at?->toDateString() == now()->toDateString()) {
+                                return $item;
+                            }
+
+                        })->pluck("request_amount")->sum();
+
+                        $this_month_money_out_balance = $trx_money_out->whereBetween('created_at',[now()->startOfMonth(), now()->endOfMonth()])->pluck("request_amount")->sum();
+
+                        $this_day_this_month_money_out_balance = ($this_day_money_out_balance + $this_month_money_out_balance);
+                        $one_percent_of_this_day_this_month_money_out_balance = (($this_day_this_month_money_out_balance / 100) == 0) ? 1 : ($this_day_this_month_money_out_balance / 100);
+
+
+                    ?>
+
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Money Out Request")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($money_out_total); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--info"><?php echo e(__("Total")); ?> <?php echo e($money_out_total); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("Pending")); ?> <?php echo e($money_out_pending); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart8" data-percent="<?php echo e(floor($money_out_pending / $one_percent_of_total_money_out)); ?>"><span><?php echo e(floor($money_out_pending / $one_percent_of_total_money_out)); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+                    <?php
+                        $trx_money_out_unit = numeric_unit_converter($trx_money_out->pluck("request_amount")->sum());
+                    ?>
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Money Out Balance")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($default_currency->symbol); ?> <?php echo e($trx_money_out_unit->number . $trx_money_out_unit->unit); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--info"><?php echo e(__("This Day")); ?> <?php echo e(numeric_unit_converter($this_day_money_out_balance)->number . numeric_unit_converter($this_day_money_out_balance)->unit); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("This Month")); ?> <?php echo e(numeric_unit_converter($this_month_money_out_balance)->number . numeric_unit_converter($this_month_money_out_balance)->unit); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart9" data-percent="<?php echo e(floor($this_day_money_out_balance / $one_percent_of_this_day_this_month_money_out_balance)); ?>"><span><?php echo e(floor($this_day_money_out_balance / $one_percent_of_this_day_this_month_money_out_balance)); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+                    <?php
+                        $support_ticket_pending = $support_ticket->where('status',support_ticket_const()::PENDING)->count();
+                        $support_ticket_solved  = $support_ticket->where('status',support_ticket_const()::SOLVED)->count();
+                        $support_ticket_active  = $support_ticket->where('status',support_ticket_const()::ACTIVE)->count();
+
+                        $support_pending_solved_count = ($support_ticket_pending + $support_ticket_solved);
+                        $one_percent_of_support_pending_solved_count = (($support_pending_solved_count / 100) == 0) ? 1 : ($support_pending_solved_count / 100);
+
+                    ?>
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("User Active Tickets")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($support_ticket_active); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--warning"><?php echo e(__("Pending")); ?> <?php echo e($support_ticket_pending); ?></span>
+                                    <span class="badge badge--success"><?php echo e(__("Solved")); ?> <?php echo e($support_ticket_solved); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart10" data-percent="<?php echo e(floor(($support_ticket_pending / $one_percent_of_support_pending_solved_count))); ?>"><span><?php echo e(floor(($support_ticket_pending / $one_percent_of_support_pending_solved_count))); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+                    <?php
+                        $total_user = $users->count();
+
+                        $active_users = $users->where('status',global_const()::ACTIVE)->count();
+                        $banned_users = $users->where('status',global_const()::BANNED)->count();
+
+                        $one_percent_of_total_users = (($total_user / 100) == 0) ? 1 : ($total_user / 100);
+
+                    ?>
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Total Users")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($total_user); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--info"><?php echo e(__("Active")); ?> <?php echo e($active_users); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("Unverified")); ?> <?php echo e($banned_users); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart11" data-percent="<?php echo e(floor($total_user / $one_percent_of_total_users)); ?>"><span><?php echo e(floor($total_user / $one_percent_of_total_users)); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+
+                    <?php
+
+                        $this_day_users_invest_balance = $users_invest->filter(function($item) {
+
+                            if ($item->created_at?->toDateString() == now()->toDateString()) {
+                                return $item;
+                            }
+
+                        })->pluck("invest_amount")->sum();
+
+                        $this_month_users_invest_balance = $users_invest->whereBetween('created_at',[now()->startOfMonth(), now()->endOfMonth()])->pluck("invest_amount")->sum();
+
+
+                        $this_day_this_month_invest = ($this_day_users_invest_balance + $this_month_users_invest_balance);
+                        $one_percent_of_this_day_this_month_invest = (($this_day_this_month_invest / 100) == 0) ? 1 : ($this_day_this_month_invest / 100);
+
+
+                    ?>
+
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Total User Invest")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($default_currency->symbol); ?> <?php echo e(numeric_unit_converter($users_invest->count())->number . numeric_unit_converter($users_invest->count())->unit); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--info"><?php echo e(__("This Day")); ?> <?php echo e(numeric_unit_converter($this_day_users_invest_balance)->number . numeric_unit_converter($this_day_users_invest_balance)->unit); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("This Month")); ?> <?php echo e(numeric_unit_converter($this_month_users_invest_balance)->number . numeric_unit_converter($this_month_users_invest_balance)->unit); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart12" data-percent="<?php echo e(floor($this_day_users_invest_balance / $one_percent_of_this_day_this_month_invest)); ?>"><span><?php echo e(floor($this_day_users_invest_balance / $one_percent_of_this_day_this_month_invest)); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxxl-4 col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-15">
+                    <?php
+                        $users_total_profit = $users_profit_log->pluck('profit_amount')->sum();
+
+                        $this_day_users_profit_balance = $users_profit_log->filter(function($item) {
+                            if ($item->created_at?->toDateString() == now()->toDateString()) {
+                                return $item;
+                            }
+                        })->pluck("profit_amount")->sum();
+
+                        $this_month_users_profit_balance = $users_profit_log->whereBetween('created_at',[now()->startOfMonth(), now()->endOfMonth()])->pluck("profit_amount")->sum();
+
+                        $this_day_this_month_profit = ($this_day_users_profit_balance + $this_month_users_profit_balance);
+                        $one_percent_of_this_day_this_month_profit = (($this_day_this_month_profit / 100) == 0) ? 1 : ($this_day_this_month_profit / 100);
+                    ?>
+                    <div class="dashbord-item">
+                        <div class="dashboard-content">
+                            <div class="left">
+                                <h6 class="title"><?php echo e(__("Users Total Profit")); ?></h6>
+                                <div class="user-info">
+                                    <h2 class="user-count"><?php echo e($default_currency->symbol); ?> <?php echo e(numeric_unit_converter($users_total_profit)->number . numeric_unit_converter($users_total_profit)->unit); ?></h2>
+                                </div>
+                                <div class="user-badge">
+                                    <span class="badge badge--info"><?php echo e(__("This Day")); ?> <?php echo e(numeric_unit_converter($this_day_users_profit_balance)->number . numeric_unit_converter($this_day_users_profit_balance)->unit); ?></span>
+                                    <span class="badge badge--warning"><?php echo e(__("This Month")); ?> <?php echo e(numeric_unit_converter($this_month_users_profit_balance)->number . numeric_unit_converter($this_month_users_profit_balance)->unit); ?></span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <div class="chart" id="chart13" data-percent="<?php echo e(floor($this_day_users_profit_balance / $one_percent_of_this_day_this_month_profit)); ?>"><span><?php echo e(floor($this_day_users_profit_balance / $one_percent_of_this_day_this_month_profit)); ?>%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="chart-area mt-15">
+        <div class="row mb-15-none">
+            <div class="col-xxl-6 col-xl-6 col-lg-6 mb-15">
+                <div class="chart-wrapper">
+                    <div class="chart-area-header">
+                        <h5 class="title"><?php echo e(__("Monthly Add Money Chart")); ?></h5>
+                    </div>
+                    <div class="chart-container">
+                        <div id="chart1" class="sales-chart"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-6 col-xl-6 col-lg-6 mb-15">
+                <div class="chart-wrapper">
+                    <div class="chart-area-header">
+                        <h5 class="title"><?php echo e(__("Revenue Chart")); ?></h5>
+                    </div>
+                    <div class="chart-container">
+                        <div id="chart2" class="revenue-chart"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-6 col-xl-6 col-lg-6 mb-15">
+                <div class="chart-wrapper">
+                    <div class="chart-area-header">
+                        <h5 class="title"><?php echo e(__("Yearly Investment Analytics")); ?></h5>
+                    </div>
+                    <div class="chart-container">
+                        <div id="chart3" class="order-chart"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxxl-6 col-xxl-3 col-xl-6 col-lg-6 mb-15">
+                <div class="chart-wrapper h-100">
+                    <div class="chart-area-header">
+                        <h5 class="title"><?php echo e(__("User Analytics")); ?></h5>
+                    </div>
+                    <div class="chart-container">
+                        <div id="chart4" class="balance-chart"></div>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="col-xxxl-12 col-xxl-3 col-xl-12 col-lg-12 mb-15">
+                <div class="chart-wrapper h-100">
+                    <div class="chart-area-header">
+                        <h5 class="title"><?php echo e(__("Growth")); ?></h5>
+                    </div>
+                    <div class="chart-container">
+                        <div id="chart5" class="growth-chart"></div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-area mt-15">
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h5 class="title"><?php echo e(__("Latest Add Moeny")); ?></h5>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Phone</th>
+                            <th>Amount</th>
+                            <th>Gateway</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__empty_1 = true; $__currentLoopData = $latest_transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <tr>
+                                <td><?php echo e($item->creator->full_name); ?></td>
+                                <td><?php echo e($item->creator->email); ?></td>
+                                <td><?php echo e($item->creator->username); ?></td>
+                                <td><?php echo e($item->creator->full_mobile ?? ''); ?></td>
+                                <td><?php echo e(get_amount($item->request_amount,$item->request_currency)); ?></td>
+                                <td>
+                                    <span class="text--info">
+                                        <?php if($item?->gateway_currency?->gateway?->name ?? false): ?>
+                                            <?php echo e($item?->gateway_currency?->gateway?->name ?? ""); ?>
+
+                                        <?php else: ?>
+                                            <?php echo e($item->remark); ?>
+
+                                        <?php endif; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="<?php echo e($item->string_status->class); ?>"><?php echo e($item->string_status->value); ?></span>
+                                </td>
+                                <td><?php echo e($item->created_at->format('d-m-y h:i:s A')); ?></td>
+                                <td>
+                                    <?php if($item->status == payment_gateway_const()::STATUSSUCCESS): ?>
+                                        <button type="button" class="btn btn--base bg--success"><i class="las la-check-circle"></i></button>
+                                    <?php endif; ?>
+
+                                    <?php if($item->status == payment_gateway_const()::STATUSREJECTED): ?>
+                                        <button type="button" class="btn btn--base bg--danger"><i class="las la-times-circle"></i></button>
+                                    <?php endif; ?>
+
+                                    <a href="<?php echo e(setRoute('admin.add.money.details',$item->trx_id)); ?>" class="btn btn--base"><i class="las la-expand"></i></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                            <?php echo $__env->make('admin.components.alerts.empty',['colspan' => 9], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('script'); ?>
+    <script>
+
+        let thisMonthsDays = '<?php echo json_encode($this_months_days, 15, 512) ?>';
+        let pendingAddMoneyChart = '<?php echo json_encode($pending_add_money_chart_data, 15, 512) ?>';
+        let completeAddMoneyChart = '<?php echo json_encode($success_add_money_chart_data, 15, 512) ?>';
+        let rejectedAddMoneyChart = '<?php echo json_encode($rejected_add_money_chart_data, 15, 512) ?>';
+        let allAddMoneyChart = '<?php echo json_encode($all_add_money_chart_data, 15, 512) ?>';
+
+        let thisYearMonths              = '<?php echo json_encode($this_year_months, 15, 512) ?>';
+        let monthWisePendingRevenue     = '<?php echo json_encode($month_wise_pending_revenue, 15, 512) ?>';
+        let monthWiseCompleteRevenue    = '<?php echo json_encode($month_wise_complete_revenue, 15, 512) ?>';
+        let monthWiseRejectedRevenue    = '<?php echo json_encode($month_wise_reject_revenue, 15, 512) ?>';
+        let monthWiseAllRevenue         = '<?php echo json_encode($month_wise_all_revenue, 15, 512) ?>';
+
+        let monthlyInvestment           = '<?php echo json_encode($monthly_investments, 15, 512) ?>';
+
+
+        let activeUsers                  = '<?php echo e($active_users); ?>';
+        let bannedUsers                  = '<?php echo e($banned_users); ?>';
+        let emailUnverifiedUsers           = '<?php echo e($email_unverified_users); ?>';
+
+        let today_profit_amount             = '<?php echo e($today_profit_amount); ?>';
+        let this_profit_week_amount         = '<?php echo e($this_profit_week_amount); ?>';
+        let this_profit_month_amount        = '<?php echo e($this_profit_month_amount); ?>';
+        let this_profit_year_amount         = '<?php echo e($this_profit_year_amount); ?>';
+
+        var options = {
+            series: [{
+                name: 'Pending',
+                color: "#5A5278",
+                data: JSON.parse(pendingAddMoneyChart),
+                }, {
+                name: 'Completed',
+                color: "#6F6593",
+                data: JSON.parse(completeAddMoneyChart),
+                }, {
+                name: 'Canceled',
+                color: "#8075AA",
+                data: JSON.parse(rejectedAddMoneyChart),
+                }, {
+                name: 'All',
+                color: "#A192D9",
+                data: JSON.parse(allAddMoneyChart),
+                }
+            ],
+            chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true,
+            toolbar: {
+                show: true
+            },
+            zoom: {
+                enabled: true
+            }
+            },
+            responsive: [{
+            breakpoint: 480,
+            options: {
+                legend: {
+                position: 'bottom',
+                offsetX: -10,
+                offsetY: 0
+                }
+            }
+            }],
+            plotOptions: {
+            bar: {
+                horizontal: false,
+                borderRadius: 10
+            },
+            },
+            xaxis: {
+            type: 'datetime',
+            categories: JSON.parse(thisMonthsDays),
+            },
+            legend: {
+            position: 'bottom',
+            offsetX: 40
+            },
+            fill: {
+            opacity: 1
+            }
+        };
+
+        var monthlyAddMoneyChart = new ApexCharts(document.querySelector("#chart1"), options);
+        monthlyAddMoneyChart.render();
+
+
+        var options = {
+            series: [{
+                name: 'Pending',
+                color: "#5A5278",
+                data: JSON.parse(monthWisePendingRevenue),
+                }, {
+                name: 'Completed',
+                color: "#6F6593",
+                data: JSON.parse(monthWiseCompleteRevenue),
+                }, {
+                name: 'Canceled',
+                color: "#8075AA",
+                data: JSON.parse(monthWiseRejectedRevenue),
+                }, {
+                name: 'All',
+                color: "#A192D9",
+                data: JSON.parse(monthWiseAllRevenue),
+                }
+            ],
+            chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true,
+            toolbar: {
+                show: true
+            },
+            zoom: {
+                enabled: true
+            }
+            },
+            responsive: [{
+            breakpoint: 480,
+            options: {
+                legend: {
+                position: 'bottom',
+                offsetX: -10,
+                offsetY: 0
+                }
+            }
+            }],
+            plotOptions: {
+            bar: {
+                horizontal: false,
+                borderRadius: 10
+            },
+            },
+            xaxis: {
+            type: 'datetime',
+            categories: JSON.parse(thisYearMonths),
+            },
+            legend: {
+            position: 'bottom',
+            offsetX: 40
+            },
+            fill: {
+            opacity: 1
+            }
+        };
+
+        var revenueChart = new ApexCharts(document.querySelector("#chart2"), options);
+        revenueChart.render();
+
+
+        // Investment Chart START
+        var options = {
+            series: [{
+            name: 'Monthly Investments',
+            color: "#5A5278",
+            data: JSON.parse(monthlyInvestment)
+            }],
+            chart: {
+            type: 'bar',
+            toolbar: {
+                show: false
+            },
+            height: 325
+            },
+            plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                borderRadius: 5,
+                endingShape: 'rounded'
+            },
+            },
+            dataLabels: {
+            enabled: false
+            },
+            stroke: {
+            show: true,
+            width: 2,
+            colors: ['transparent']
+            },
+            xaxis: {
+                type: 'datetime',
+                categories: JSON.parse(thisYearMonths),
+            },
+            yaxis: {
+            title: {
+                text: '<?php echo e($default_currency->symbol); ?>'
+            }
+            },
+            fill: {
+            opacity: 1
+            }
+        };
+
+        var investmentAnalytics = new ApexCharts(document.querySelector("#chart3"), options);
+        investmentAnalytics.render();
+        // Investment Chart END
+
+
+        // User Analytics START
+        var options = {
+          series: [parseInt(activeUsers), parseInt(emailUnverifiedUsers), parseInt(bannedUsers)],
+          chart: {
+          width: 350,
+          type: 'pie'
+        },
+        colors: ['#5A5278', '#6F6593', '#8075AA', '#A192D9'],
+        labels: ['Active', 'Unverified', 'Banned'],
+        responsive: [{
+          breakpoint: 1480,
+          options: {
+            chart: {
+              width: 280
+            },
+            legend: {
+              position: 'bottom'
+            }
+          },
+          breakpoint: 1199,
+          options: {
+            chart: {
+              width: 380
+            },
+            legend: {
+              position: 'bottom'
+            }
+          },
+          breakpoint: 575,
+          options: {
+            chart: {
+              width: 280
+            },
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }],
+        legend: {
+          position: 'bottom'
+        },
+        };
+
+        var chart = new ApexCharts(document.querySelector("#chart4"), options);
+        chart.render();
+
+        // User Analytics END
+
+
+        // Growth START
+        var options = {
+            series: [parseInt(today_profit_amount), parseInt(this_profit_week_amount), parseInt(this_profit_month_amount), parseInt(this_profit_year_amount)],
+            chart: {
+            width: 350,
+            type: 'donut',
+            },
+            colors: ['#5A5278', '#6F6593', '#8075AA', '#A192D9'],
+            labels: ['Today', '1 week', '1 month', '1 year'],
+            legend: {
+                position: 'bottom'
+            },
+            responsive: [{
+            breakpoint: 1600,
+            options: {
+                chart: {
+                width: 100,
+                },
+                legend: {
+                position: 'bottom'
+                }
+            },
+            breakpoint: 1199,
+            options: {
+                chart: {
+                width: 380
+                },
+                legend: {
+                position: 'bottom'
+                }
+            },
+            breakpoint: 575,
+            options: {
+                chart: {
+                width: 280
+                },
+                legend: {
+                position: 'bottom'
+                }
+            }
+            }]
+        };
+
+        var growth = new ApexCharts(document.querySelector("#chart5"), options);
+        growth.render();
+        // Growth END
+
+    </script>
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('admin.layouts.master', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/prosnluk/public_html/resources/views/admin/sections/dashboard/index.blade.php ENDPATH**/ ?>
